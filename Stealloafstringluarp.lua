@@ -1,132 +1,140 @@
--- FIAT HUB – LOADSTRING STEAL | RAYFIELD ATUAL
-
 ------------------------------------------------
--- RAYFIELD
+-- RAYFIELD LOAD
 ------------------------------------------------
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
+------------------------------------------------
+-- WINDOW
+------------------------------------------------
 local Window = Rayfield:CreateWindow({
-    Name = "FIAT HUB",
-    LoadingTitle = "FIAT HUB",
-    LoadingSubtitle = "by fiat",
-    Theme = "Ocean",
-    ToggleUIKeybind = "K",
-    ConfigurationSaving = {
-        Enabled = false
-    },
-    KeySystem = false
+   Name = "Fiat Hub",
+   LoadingTitle = "Fiat Hub",
+   LoadingSubtitle = "Script em Beta",
+   ShowText = "Fiat Hub",
+   Theme = "Default",
+   ToggleUIKeybind = "K",
 })
-
-------------------------------------------------
--- SERVICES
-------------------------------------------------
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ------------------------------------------------
 -- TABS
 ------------------------------------------------
-local StealTab = Window:CreateTab("loadstring steal", 6862780938)
-local RS_Tab   = Window:CreateTab("repliqued storg", 6862780938)
-local DiscordTab = Window:CreateTab("Discord", 6862780938)
+local StealTab = Window:CreateTab("Loadstring Steal", 4483362458)
+local RepTab   = Window:CreateTab("Repliqued Storg", 4483362458)
+local DiscTab  = Window:CreateTab("Discord", 4483362458)
 
 ------------------------------------------------
--- LOADSTRING STEAL (LOGIC)
+-- ===== LOADSTRING STEAL =====
 ------------------------------------------------
+StealTab:CreateParagraph({
+   Title = "Aviso",
+   Content = "script está em beta não espere muito"
+})
+
 local CapturedLoadstrings = {}
 local SelectedLoadstring = nil
 
--- Hook loadstring
-local old_loadstring = loadstring
-getgenv().loadstring = function(src)
-    if typeof(src) == "string" then
-        table.insert(CapturedLoadstrings, src)
-        if LoadstringDropdown then
-            LoadstringDropdown:Refresh(CapturedLoadstrings, true)
-        end
-    end
-    return old_loadstring(src)
-end
-
-------------------------------------------------
--- UI – LOADSTRING STEAL
-------------------------------------------------
-StealTab:CreateLabel("script está em beta não espere muito")
-
 local LoadstringDropdown = StealTab:CreateDropdown({
-    Name = "Captured Loadstrings",
-    Options = {},
-    CurrentOption = nil,
-    Callback = function(v)
-        SelectedLoadstring = v
-    end
+   Name = "Loadstrings Capturados",
+   Options = {},
+   CurrentOption = {},
+   MultiSelection = false,
+   Callback = function(opt)
+      SelectedLoadstring = opt[1]
+   end,
 })
 
 StealTab:CreateButton({
-    Name = "copy",
-    Callback = function()
-        if SelectedLoadstring then
-            setclipboard(SelectedLoadstring)
-        end
-    end
+   Name = "Copy",
+   Callback = function()
+      if SelectedLoadstring then
+         setclipboard(SelectedLoadstring)
+      end
+   end,
 })
 
 StealTab:CreateButton({
-    Name = "reset",
-    Callback = function()
-        table.clear(CapturedLoadstrings)
-        LoadstringDropdown:Refresh({}, true)
-        SelectedLoadstring = nil
-    end
+   Name = "Reset",
+   Callback = function()
+      table.clear(CapturedLoadstrings)
+      LoadstringDropdown:Refresh({}, true)
+      SelectedLoadstring = nil
+   end,
 })
 
 ------------------------------------------------
--- REPLICATED STORAGE SCAN
+-- HOOK REAL (HTTPGET)
 ------------------------------------------------
-local RS_Items = {}
-local SelectedRS = nil
+local oldHttpGet
+oldHttpGet = hookfunction(game.HttpGet, function(self, url, ...)
+   if typeof(url) == "string" then
+      local entry = 'loadstring(game:HttpGet("'..url..'"))()'
+      if not table.find(CapturedLoadstrings, entry) then
+         table.insert(CapturedLoadstrings, entry)
+         LoadstringDropdown:Refresh(CapturedLoadstrings, true)
+      end
+   end
+   return oldHttpGet(self, url, ...)
+end)
 
-local function scanRS()
-    table.clear(RS_Items)
-    for _,v in pairs(ReplicatedStorage:GetChildren()) do
-        table.insert(RS_Items, v.Name)
-    end
-end
+------------------------------------------------
+-- ===== REPLICATED STORG =====
+------------------------------------------------
+local ServicesUsed = {}
+local SelectedService = nil
 
-scanRS()
-
-local RSDropdown = RS_Tab:CreateDropdown({
-    Name = "ReplicatedStorage Items",
-    Options = RS_Items,
-    CurrentOption = nil,
-    Callback = function(v)
-        SelectedRS = v
-    end
+local RepDropdown = RepTab:CreateDropdown({
+   Name = "Serviços Usados",
+   Options = {},
+   CurrentOption = {},
+   MultiSelection = false,
+   Callback = function(opt)
+      SelectedService = opt[1]
+   end,
 })
 
-RS_Tab:CreateButton({
-    Name = "copy",
-    Callback = function()
-        if SelectedRS then
-            setclipboard(SelectedRS)
-        end
-    end
+RepTab:CreateButton({
+   Name = "Copy",
+   Callback = function()
+      if SelectedService then
+         setclipboard(SelectedService)
+      end
+   end,
 })
 
 ------------------------------------------------
--- DISCORD
+-- HOOK GetService
 ------------------------------------------------
-DiscordTab:CreateLabel("script feito por Fiat")
-DiscordTab:CreateLabel("Adms falsos: Lorenzo")
+local oldGetService
+oldGetService = hookfunction(game.GetService, function(self, service)
+   if typeof(service) == "string" then
+      if not table.find(ServicesUsed, service) then
+         table.insert(ServicesUsed, service)
+         RepDropdown:Refresh(ServicesUsed, true)
+      end
+   end
+   return oldGetService(self, service)
+end)
 
-DiscordTab:CreateButton({
-    Name = "Get Discord Server",
-    Callback = function()
-        setclipboard("--------?")
-    end
+------------------------------------------------
+-- ===== DISCORD =====
+------------------------------------------------
+DiscTab:CreateParagraph({
+   Title = "Créditos",
+   Content = "Script feito por Fiat\nAdms falsos: Lorenzo"
+})
+
+DiscTab:CreateButton({
+   Name = "Get Discord sever",
+   Callback = function()
+      setclipboard("--------?")
+   end,
 })
 
 ------------------------------------------------
 -- FINAL
 ------------------------------------------------
-Rayfield:LoadConfiguration()
+Rayfield:Notify({
+   Title = "Fiat Hub",
+   Content = "Interface carregada com sucesso",
+   Duration = 4
+})
