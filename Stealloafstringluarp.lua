@@ -1,140 +1,123 @@
 ------------------------------------------------
--- RAYFIELD LOAD
+-- RAYFIELD
 ------------------------------------------------
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
-------------------------------------------------
--- WINDOW
-------------------------------------------------
 local Window = Rayfield:CreateWindow({
-   Name = "Fiat Hub",
-   LoadingTitle = "Fiat Hub",
-   LoadingSubtitle = "Script em Beta",
-   ShowText = "Fiat Hub",
-   Theme = "Default",
-   ToggleUIKeybind = "K",
+    Name = "Fiat Hub",
+    LoadingTitle = "Fiat Hub",
+    LoadingSubtitle = "Beta",
+    ToggleUIKeybind = "K"
 })
 
 ------------------------------------------------
 -- TABS
 ------------------------------------------------
-local StealTab = Window:CreateTab("Loadstring Steal", 4483362458)
-local RepTab   = Window:CreateTab("Repliqued Storg", 4483362458)
-local DiscTab  = Window:CreateTab("Discord", 4483362458)
+local StealTab = Window:CreateTab("Loadstring Steal")
+local RepTab   = Window:CreateTab("Repliqued Storg")
+local DiscTab  = Window:CreateTab("Discord")
 
 ------------------------------------------------
--- ===== LOADSTRING STEAL =====
+-- LOADSTRING STEAL
 ------------------------------------------------
 StealTab:CreateParagraph({
-   Title = "Aviso",
-   Content = "script está em beta não espere muito"
+    Title = "Aviso",
+    Content = "script está em beta não espere muito"
 })
 
-local CapturedLoadstrings = {}
+local Loadstrings = {}
 local SelectedLoadstring = nil
 
-local LoadstringDropdown = StealTab:CreateDropdown({
-   Name = "Loadstrings Capturados",
-   Options = {},
-   CurrentOption = {},
-   MultiSelection = false,
-   Callback = function(opt)
-      SelectedLoadstring = opt[1]
-   end,
+local LS_Dropdown = StealTab:CreateDropdown({
+    Name = "Loadstrings",
+    Options = {},
+    CurrentOption = "",
+    Callback = function(v)
+        SelectedLoadstring = v
+    end
 })
 
 StealTab:CreateButton({
-   Name = "Copy",
-   Callback = function()
-      if SelectedLoadstring then
-         setclipboard(SelectedLoadstring)
-      end
-   end,
+    Name = "Copy",
+    Callback = function()
+        if SelectedLoadstring and SelectedLoadstring ~= "" then
+            setclipboard(SelectedLoadstring)
+        end
+    end
 })
 
 StealTab:CreateButton({
-   Name = "Reset",
-   Callback = function()
-      table.clear(CapturedLoadstrings)
-      LoadstringDropdown:Refresh({}, true)
-      SelectedLoadstring = nil
-   end,
+    Name = "Reset",
+    Callback = function()
+        table.clear(Loadstrings)
+        LS_Dropdown:Refresh({}, true)
+        SelectedLoadstring = nil
+    end
 })
 
 ------------------------------------------------
--- HOOK REAL (HTTPGET)
+-- LOADSTRING HOOK (REAL)
 ------------------------------------------------
-local oldHttpGet
-oldHttpGet = hookfunction(game.HttpGet, function(self, url, ...)
-   if typeof(url) == "string" then
-      local entry = 'loadstring(game:HttpGet("'..url..'"))()'
-      if not table.find(CapturedLoadstrings, entry) then
-         table.insert(CapturedLoadstrings, entry)
-         LoadstringDropdown:Refresh(CapturedLoadstrings, true)
-      end
-   end
-   return oldHttpGet(self, url, ...)
+local old_loadstring
+old_loadstring = hookfunction(loadstring, function(code)
+    if typeof(code) == "string" then
+        if not table.find(Loadstrings, code) then
+            table.insert(Loadstrings, code)
+            LS_Dropdown:Refresh(Loadstrings, true)
+        end
+    end
+    return old_loadstring(code)
 end)
 
 ------------------------------------------------
--- ===== REPLICATED STORG =====
+-- REPLICATED STORG / SERVICES
 ------------------------------------------------
-local ServicesUsed = {}
+local Services = {}
 local SelectedService = nil
 
 local RepDropdown = RepTab:CreateDropdown({
-   Name = "Serviços Usados",
-   Options = {},
-   CurrentOption = {},
-   MultiSelection = false,
-   Callback = function(opt)
-      SelectedService = opt[1]
-   end,
+    Name = "Services",
+    Options = {},
+    CurrentOption = "",
+    Callback = function(v)
+        SelectedService = v
+    end
 })
 
 RepTab:CreateButton({
-   Name = "Copy",
-   Callback = function()
-      if SelectedService then
-         setclipboard(SelectedService)
-      end
-   end,
+    Name = "Copy",
+    Callback = function()
+        if SelectedService and SelectedService ~= "" then
+            setclipboard(SelectedService)
+        end
+    end
 })
 
 ------------------------------------------------
--- HOOK GetService
+-- GetService HOOK
 ------------------------------------------------
-local oldGetService
-oldGetService = hookfunction(game.GetService, function(self, service)
-   if typeof(service) == "string" then
-      if not table.find(ServicesUsed, service) then
-         table.insert(ServicesUsed, service)
-         RepDropdown:Refresh(ServicesUsed, true)
-      end
-   end
-   return oldGetService(self, service)
+local old_GetService
+old_GetService = hookfunction(game.GetService, function(self, service)
+    if typeof(service) == "string" then
+        if not table.find(Services, service) then
+            table.insert(Services, service)
+            RepDropdown:Refresh(Services, true)
+        end
+    end
+    return old_GetService(self, service)
 end)
 
 ------------------------------------------------
--- ===== DISCORD =====
+-- DISCORD
 ------------------------------------------------
 DiscTab:CreateParagraph({
-   Title = "Créditos",
-   Content = "Script feito por Fiat\nAdms falsos: Lorenzo"
+    Title = "Script feito por Fiat",
+    Content = "Adms falsos: Lorenzo"
 })
 
 DiscTab:CreateButton({
-   Name = "Get Discord sever",
-   Callback = function()
-      setclipboard("--------?")
-   end,
-})
-
-------------------------------------------------
--- FINAL
-------------------------------------------------
-Rayfield:Notify({
-   Title = "Fiat Hub",
-   Content = "Interface carregada com sucesso",
-   Duration = 4
+    Name = "Get Discord sever",
+    Callback = function()
+        setclipboard("--------?")
+    end
 })
