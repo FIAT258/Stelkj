@@ -1,123 +1,132 @@
+-- FIAT HUB â€“ LOADSTRING STEAL | RAYFIELD ATUAL
+
 ------------------------------------------------
 -- RAYFIELD
 ------------------------------------------------
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Fiat Hub",
-    LoadingTitle = "Fiat Hub",
-    LoadingSubtitle = "Beta",
-    ToggleUIKeybind = "K"
+    Name = "FIAT HUB",
+    LoadingTitle = "FIAT HUB",
+    LoadingSubtitle = "by fiat",
+    Theme = "Ocean",
+    ToggleUIKeybind = "K",
+    ConfigurationSaving = {
+        Enabled = false
+    },
+    KeySystem = false
 })
+
+------------------------------------------------
+-- SERVICES
+------------------------------------------------
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ------------------------------------------------
 -- TABS
 ------------------------------------------------
-local StealTab = Window:CreateTab("Loadstring Steal")
-local RepTab   = Window:CreateTab("Repliqued Storg")
-local DiscTab  = Window:CreateTab("Discord")
+local StealTab = Window:CreateTab("loadstring steal", 6862780938)
+local RS_Tab   = Window:CreateTab("repliqued storg", 6862780938)
+local DiscordTab = Window:CreateTab("Discord", 6862780938)
 
 ------------------------------------------------
--- LOADSTRING STEAL
+-- LOADSTRING STEAL (LOGIC)
 ------------------------------------------------
-StealTab:CreateParagraph({
-    Title = "Aviso",
-    Content = "script está em beta não espere muito"
-})
-
-local Loadstrings = {}
+local CapturedLoadstrings = {}
 local SelectedLoadstring = nil
 
-local LS_Dropdown = StealTab:CreateDropdown({
-    Name = "Loadstrings",
+-- Hook loadstring
+local old_loadstring = loadstring
+getgenv().loadstring = function(src)
+    if typeof(src) == "string" then
+        table.insert(CapturedLoadstrings, src)
+        if LoadstringDropdown then
+            LoadstringDropdown:Refresh(CapturedLoadstrings, true)
+        end
+    end
+    return old_loadstring(src)
+end
+
+------------------------------------------------
+-- UI â€“ LOADSTRING STEAL
+------------------------------------------------
+StealTab:CreateLabel("script estÃ¡ em beta nÃ£o espere muito")
+
+local LoadstringDropdown = StealTab:CreateDropdown({
+    Name = "Captured Loadstrings",
     Options = {},
-    CurrentOption = "",
+    CurrentOption = nil,
     Callback = function(v)
         SelectedLoadstring = v
     end
 })
 
 StealTab:CreateButton({
-    Name = "Copy",
+    Name = "copy",
     Callback = function()
-        if SelectedLoadstring and SelectedLoadstring ~= "" then
+        if SelectedLoadstring then
             setclipboard(SelectedLoadstring)
         end
     end
 })
 
 StealTab:CreateButton({
-    Name = "Reset",
+    Name = "reset",
     Callback = function()
-        table.clear(Loadstrings)
-        LS_Dropdown:Refresh({}, true)
+        table.clear(CapturedLoadstrings)
+        LoadstringDropdown:Refresh({}, true)
         SelectedLoadstring = nil
     end
 })
 
 ------------------------------------------------
--- LOADSTRING HOOK (REAL)
+-- REPLICATED STORAGE SCAN
 ------------------------------------------------
-local old_loadstring
-old_loadstring = hookfunction(loadstring, function(code)
-    if typeof(code) == "string" then
-        if not table.find(Loadstrings, code) then
-            table.insert(Loadstrings, code)
-            LS_Dropdown:Refresh(Loadstrings, true)
-        end
+local RS_Items = {}
+local SelectedRS = nil
+
+local function scanRS()
+    table.clear(RS_Items)
+    for _,v in pairs(ReplicatedStorage:GetChildren()) do
+        table.insert(RS_Items, v.Name)
     end
-    return old_loadstring(code)
-end)
+end
 
-------------------------------------------------
--- REPLICATED STORG / SERVICES
-------------------------------------------------
-local Services = {}
-local SelectedService = nil
+scanRS()
 
-local RepDropdown = RepTab:CreateDropdown({
-    Name = "Services",
-    Options = {},
-    CurrentOption = "",
+local RSDropdown = RS_Tab:CreateDropdown({
+    Name = "ReplicatedStorage Items",
+    Options = RS_Items,
+    CurrentOption = nil,
     Callback = function(v)
-        SelectedService = v
+        SelectedRS = v
     end
 })
 
-RepTab:CreateButton({
-    Name = "Copy",
+RS_Tab:CreateButton({
+    Name = "copy",
     Callback = function()
-        if SelectedService and SelectedService ~= "" then
-            setclipboard(SelectedService)
+        if SelectedRS then
+            setclipboard(SelectedRS)
         end
     end
 })
-
-------------------------------------------------
--- GetService HOOK
-------------------------------------------------
-local old_GetService
-old_GetService = hookfunction(game.GetService, function(self, service)
-    if typeof(service) == "string" then
-        if not table.find(Services, service) then
-            table.insert(Services, service)
-            RepDropdown:Refresh(Services, true)
-        end
-    end
-    return old_GetService(self, service)
-end)
 
 ------------------------------------------------
 -- DISCORD
 ------------------------------------------------
-DiscTab:CreateParagraph({
-    Title = "Script feito por Fiat",
-    Content = "Adms falsos: Lorenzo"
-})
+DiscordTab:CreateLabel("script feito por Fiat")
+DiscordTab:CreateLabel("Adms falsos: Lorenzo")
 
-DiscTab:CreateButton({
-    Name = "Get Discord sever",
+DiscordTab:CreateButton({
+    Name = "Get Discord Server",
     Callback = function()
         setclipboard("--------?")
     end
 })
+
+------------------------------------------------
+-- FINAL
+------------------------------------------------
+Rayfield:LoadConfiguration()
